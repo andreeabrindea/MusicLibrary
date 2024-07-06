@@ -10,14 +10,16 @@ onMounted(() => {
                 return;
             }
             var data = await getSuggestions(inputElement.value);
-            var finalResults = [];
-            data.map(artist => {
-                artist.albums.map(album => (finalResults.push(artist.name + " " + album.title)));
-            })
+            if (data != null) {
+                var finalResults = [];
+                data.map(artist => {
+                    artist.albums.map(album => (finalResults.push(artist.name + " " + album.title)));
+                })
 
-            items.value = finalResults.map((elem) => {
-                return { message: elem }
-            })
+                items.value = finalResults.map((elem) => {
+                    return { message: elem }
+                })
+            }
         }
         catch (error) {
             console.log(error.message);
@@ -26,8 +28,13 @@ onMounted(() => {
 });
 
 async function getSuggestions(elem) {
-    const suggestions = await fetch(`http://127.0.0.1:3000/suggest/${elem}`)
-    return await suggestions.json();
+    const validKeyword = /^[a-zA-Z\d\_]{1,}$/g;
+    if (validKeyword) {
+        const suggestions = await fetch(`http://127.0.0.1:3000/suggest/${elem}`)
+        return await suggestions.json();
+    }
+
+    return null;
 }
 </script>
 
