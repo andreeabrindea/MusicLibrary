@@ -1,17 +1,39 @@
 <script setup>
 import { ref, onMounted } from 'vue';
-
+const items = ref([]);
 onMounted(() => {
     const inputElement = document.getElementById('input-search-bar');
-    inputElement.addEventListener('input', () => {
-        console.log(inputElement.value);
+    inputElement.addEventListener('input', async () => {
+        try {
+            if (inputElement.value == "") {
+                items.value = [];
+                return;
+            }
+            var data = await getSuggestions(inputElement.value);
+            var finalResults = [];
+            data.map(artist => {
+                artist.albums.map(album => (finalResults.push(artist.name + " " + album.title)));
+            })
+
+            items.value = finalResults.map((elem) => {
+                return { message: elem }
+            })
+        }
+        catch (error) {
+            console.log(error.message);
+        }
     });
 });
+
+async function getSuggestions(elem) {
+    const suggestions = await fetch(`http://127.0.0.1:3000/suggest/${elem}`)
+    return await suggestions.json();
+}
 </script>
 
 <template>
     <main class="search-wrapper">
-        <div class="input-wrapper">
+        <form class="input-wrapper">
             <button id="close-button">
                 <img id="close-icon" src="./icons/close.png">
             </button>
@@ -19,11 +41,11 @@ onMounted(() => {
             <button id="search-button">
                 <img id="search-icon" src="./icons/search.png">
             </button>
-        </div>
-        <ul class="suggestions-list">
-            <li class="icon">item1</li>
-            <li class="icon">item2</li>
-            <li class="icon">item3</li>
+        </form>
+        <ul class="suggestions-list" id="suggestions-list">
+            <li v-for="item in items" class="icon suggestions-list-element">
+                {{ item.message }}
+            </li>
         </ul>
     </main>
 </template>
@@ -103,5 +125,16 @@ li:hover {
     padding-left: 28px;
     background: url("https://static.thenounproject.com/png/101791-200.png") no-repeat left;
     background-size: 24px;
+}
+
+.icon:hover {
+    cursor: pointer;
+}
+
+.suggestion-list-element {
+    display: flex;
+    flex-direction: row;
+    gap: 1;
+    box-sizing: content-box;
 }
 </style>
