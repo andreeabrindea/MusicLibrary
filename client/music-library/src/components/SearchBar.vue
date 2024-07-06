@@ -15,7 +15,7 @@ onMounted(() => {
             <button id="close-button">
                 <img id="close-icon" src="./icons/close.png">
             </button>
-            <input id="input-search-bar" type="text">
+            <input id="input-search-bar" type="text" placeholder="Search">
             <button id="search-button">
                 <img id="search-icon" src="./icons/search.png">
             </button>
@@ -29,14 +29,17 @@ onMounted(() => {
 </template>
 
 <style scoped>
-#search-button, #close-button {
+#search-button,
+#close-button {
     height: 4vh;
     border: 0;
     background-color: #FFF8F3;
 }
+
 #close-button {
     flex-grow: 1;
 }
+
 #search-icon {
     max-width: 100%;
     max-height: 100%;
@@ -92,7 +95,7 @@ li:hover {
 }
 
 #input-search-bar:focus {
-   outline: none;
+    outline: none;
 }
 
 
