@@ -72,7 +72,9 @@ async function main() {
     try {
       const { title } = req.params;
 
-      const artist = await Artist.findOne({ "albums.songs.title": decodeURIComponent(title) });
+      const artist = await Artist.findOne({
+        "albums.songs.title": decodeURIComponent(title),
+      });
       if (!artist) {
         return res.status(404).json({ message: "Song not found" });
       }
@@ -83,6 +85,21 @@ async function main() {
     }
   });
 
+  router.get("/suggest/:searched", async (req, res, next) => {
+    try {
+      const { searched } = req.params;
+      const artists = await Artist.find({
+        $or: [
+          { name: { $regex: searched, $options: "i" } },
+          { "albums.title": { $regex: searched, $options: "i" } },
+          { "albums.songs.title": { $regex: searched, $options: "i" } },
+        ],
+      });
+      res.status(200).json(artists);
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  });
   const hostname = "127.0.0.1";
   const port = 3000;
 
