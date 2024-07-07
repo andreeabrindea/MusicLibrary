@@ -10,20 +10,20 @@ let albums = ref([]);
 
 onMounted(async () => {
     artistName = route.params.name;
-    const artistDetails = await getArtist(artistName);
-    if (artistDetails.name[artistDetails.name.length - 1] === 's') {
-        name.value = artistDetails.name + `' albums`;
+    const artistsAlbums = await getArtist(artistName);
+    if (artistName[artistName.length - 1] === 's') {
+        name.value = decodeURI(artistName) + `' albums`;
     }
     else {
-        name.value = artistDetails.name + `'s albums`;
+        name.value = decodeURI(artistName) + `'s albums`;
     }
 
-    albums.value = artistDetails.albums;
+    albums.value = artistsAlbums;
 })
 
 async function getArtist(name) {
-    const artistDetails = await fetch(`http://127.0.0.1:3000/artists/${name}`);
-    return await artistDetails.json();
+    const artistsAlbums = await fetch(`http://127.0.0.1:3000/music/albums-by-artist/${name}`);
+    return await artistsAlbums.json();
 }
 
 </script>
