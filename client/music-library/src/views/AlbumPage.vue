@@ -1,25 +1,90 @@
 <script setup>
 import SearchBar from '../components/SearchBar.vue'
+import { ref, onMounted } from 'vue';
+import { useRoute } from 'vue-router'
+const route = useRoute();
 
+let title = ref("");
+const songs = ref([]);
+const description = ref("");
+
+onMounted(async () => {
+    const albumSongs = await getAlbumSongs(route.params.name, route.params.title);
+    if (albumSongs != null) {
+        songs.value = albumSongs.album[0].songs;
+        description.value = albumSongs.album[0].description;
+        title.value = decodeURIComponent(route.params.name);
+    }
+})
+
+async function getAlbumSongs(name, album) {
+    const songs = await fetch(`http://127.0.0.1:3000/songs/${name}/${album}`);
+    if (songs.status != 200) {
+        {
+            return null;
+        }
+    }
+    return await songs.json();
+}
 </script>
-
 <template>
-    <header>
+    <nav>
         <a href="/"><img src="../assets/back.png" id="back-button"></a>
         <div class="page-wrapper">
             <SearchBar class="search-bar"></SearchBar>
         </div>
+    </nav>
+    <header>
+        <div v-if="songs.length == 0" class="not-found-message">
+            <h1>Album not found</h1>
+        </div>
+        <img v-if="songs.length" id="artist-icon" src="../assets/album.png">
     </header>
-    <img id="artist-icon" src="../assets/album.png">
     <main class="artist-content">
-        <h1>name</h1>
-        <h2>songs</h2>
-        <ul>
-            <li></li>
-        </ul>
+        <h1>{{ title }}</h1>
+        <p class="album-description">{{ description }}</p>
+        <section v-if="songs.length" class="table-of-songs">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Length</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="song in songs" :key="song._id">
+                        <td>{{ song.title }}</td>
+                        <td>{{ song.length }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
     </main>
 </template>
 <style scoped>
+.not-found-message {
+    position: absolute;
+    top: 10%;
+    left: 0;
+    right: 0;
+    margin-left: auto;
+    margin-right: auto;
+    width: 25vw;
+    /* Need a specific value to work */
+}
+
+.table-of-songs {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+}
+
+.album-description {
+    width: 80vw;
+    font-size: 1.3rem;
+}
+
 #back-button {
     border: none;
     background-color: white;
@@ -39,10 +104,10 @@ import SearchBar from '../components/SearchBar.vue'
 }
 
 #artist-icon {
-    position: fixed;
+    position: absolute;
     top: 80px;
-    z-index: 1;
-    height: 40vh;
+    z-index: 0;
+    height: 400px;
 }
 
 .search-bar {
@@ -50,11 +115,25 @@ import SearchBar from '../components/SearchBar.vue'
 }
 
 .artist-content {
-    position: fixed;
+    position: absolute;
+    margin-top: 20vh;
     width: 100vw;
-    z-index: 99;
-    top: 360px;
+    z-index: 2;
+    top: 380px;
     text-align: left;
     margin-left: 4vw;
+}
+
+table {
+    width: 50vw;
+    text-align: center;
+    margin-bottom: 20vh;
+}
+
+table,
+th,
+td {
+    font-size: 1.5rem;
+    border: 1px solid pink;
 }
 </style>

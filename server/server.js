@@ -76,7 +76,7 @@ async function main() {
     }
   });
 
-  router.get("/music/by-song/:title", async (req, res) => {
+  router.get("/artist/by-song/:title", async (req, res) => {
     try {
       const { title } = req.params;
 
@@ -93,9 +93,21 @@ async function main() {
     }
   });
 
-  router.get("/music/by-name-album/:name/:album", async (req, res) => {
-      console.log(req.params.name);
-      console.log(req.params.album);
+  router.get("/songs/:artist/:album", async (req, res) => {
+    try {
+      const artist = await Artist.findOne({
+        name: decodeURIComponent(req.params.artist),
+        "albums.title": decodeURIComponent(req.params.album)
+      });
+      console.log(decodeURIComponent(req.params.artist));
+      if (!artist) {
+        return res.status(404).json({ message: "Album not found" });
+      }
+      var album = artist.albums.filter((album) => album.title == req.params.album);
+      res.status(200).json({ album });
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
   });
 
   router.get("/suggest/:searched", async (req, res, next) => {
