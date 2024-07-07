@@ -14,9 +14,4 @@ import SearchBar from '../components/SearchBar.vue'
   justify-content: center;
   height: 100vh;
 }
-
-.search-bar {
-  position: fixed;
-  top: 50%;
-}
 </style>

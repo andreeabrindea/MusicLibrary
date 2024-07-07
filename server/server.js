@@ -15,7 +15,7 @@ async function main() {
     next();
   });
   
-  router.post("/music", async (req, res) => {
+  router.post("/artists", async (req, res) => {
     try {
       const artist = await Artist.create(req.body);
       res.status(200).json(artist);
@@ -25,7 +25,7 @@ async function main() {
     }
   });
 
-  router.get("/music", async (req, res) => {
+  router.get("/artists", async (req, res) => {
     try {
       const artist = await Artist.find({});
       res.status(200).json(artist);
@@ -34,15 +34,16 @@ async function main() {
     }
   });
 
-  router.get("/music/:id", async (req, res) => {
+  router.get("/artists/:name", async (req, res) => {
     try {
-      const { id } = req.params;
-      const artist = await Artist.findById(id);
+      const { name } = req.params;
+      const artist = await Artist.findOne({name: decodeURIComponent(name)});
       res.status(200).json(artist);
     } catch (error) {
       res.status(500).json({ message: error.message });
     }
   });
+
 
   router.get("/music/songs-by-artist/:name", async (req, res) => {
     try {

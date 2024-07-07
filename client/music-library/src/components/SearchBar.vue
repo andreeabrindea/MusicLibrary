@@ -1,8 +1,10 @@
 <script setup>
 import { ref, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
 
 const suggestions = ref([]);
-const id = ref();
+let artistName = ref(null);
+const router = useRouter();
 
 onMounted(async () => {
     const inputElement = document.getElementById('input-search-bar');
@@ -18,11 +20,14 @@ onMounted(async () => {
             if (data != null) {
                 const artistsNamesAndAlbums = [];
                 data.map(artist => {
-                    artist.albums.map(album => { artistsNamesAndAlbums.push(artist.name + " " + album.title); });
+                    artist.albums.map(album => {
+                        artistsNamesAndAlbums.push({ name: artist.name, title: album.title }
+                        );
+                    });
                 });
 
                 suggestions.value = artistsNamesAndAlbums.map((item) => {
-                    return { artistAndAlbum: item, };
+                    return { artist: item.name, album: item.title };
                 });
             }
         } catch (error) {
@@ -33,6 +38,13 @@ onMounted(async () => {
         closeButton.addEventListener('click', () => {
             inputElement.value = "";
             suggestions.value = [];
+        });
+
+
+        const searchButton = document.getElementById('search-button');
+        searchButton.addEventListener('click', () => {
+            router.push({ name: 'artist', params: { name: encodeURI(artistName) } })
+            inputElement.value = "";
         });
     });
 
@@ -110,9 +122,11 @@ async function getSuggestions(elem) {
 
 function selectSuggestion(suggestion) {
     const inputElement = document.getElementById('input-search-bar');
-    inputElement.value = suggestion;
+    inputElement.value = suggestion.artist + ' ' + suggestion.album;
+    artistName = suggestion.artist;
     suggestions.value = [];
 }
+
 </script>
 
 <template>
@@ -127,15 +141,23 @@ function selectSuggestion(suggestion) {
             </button>
         </form>
         <ul class="suggestions-list" id="suggestions-list">
-            <li v-for="(suggestion, index) in suggestions" :key="suggestion.artistAndAlbum"
-                class="icon suggestions-list-element" @click="selectSuggestion(suggestion.artistAndAlbum)"> {{
-                suggestion.artistAndAlbum }}
+            <li v-for="(suggestion, index) in suggestions" :key="suggestion.artist"
+                class="icon suggestions-list-element" @click="selectSuggestion(suggestion)"> {{
+                suggestion.artist }}
+                <p>{{ suggestion.album }}</p>
             </li>
         </ul>
     </main>
 </template>
 
 <style scoped>
+.suggestions-list-element {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+}
+
 #search-button,
 #close-button {
     height: 4vh;

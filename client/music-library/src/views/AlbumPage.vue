@@ -10,7 +10,7 @@ import SearchBar from '../components/SearchBar.vue'
             <SearchBar class="search-bar"></SearchBar>
         </div>
     </header>
-    <img id="artist-icon" src="../assets/artist.png">
+    <img id="artist-icon" src="../assets/album.png">
     <main class="artist-content">
         <h1>name</h1>
         <h2>songs</h2>
