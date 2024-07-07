@@ -1,57 +1,135 @@
 <script setup>
 import { ref, onMounted } from 'vue';
-const items = ref([]);
-onMounted(() => {
+
+const suggestions = ref([]);
+const id = ref();
+
+onMounted(async () => {
     const inputElement = document.getElementById('input-search-bar');
+
     inputElement.addEventListener('input', async () => {
         try {
-            if (inputElement.value == "") {
-                items.value = [];
+            if (inputElement.value === "") {
+                suggestions.value = [];
                 return;
             }
-            var data = await getSuggestions(inputElement.value);
-            if (data != null) {
-                var finalResults = [];
-                data.map(artist => {
-                    artist.albums.map(album => (finalResults.push(artist.name + " " + album.title)));
-                })
 
-                items.value = finalResults.map((elem) => {
-                    return { message: elem }
-                })
+            const data = await getSuggestions(inputElement.value);
+            if (data != null) {
+                const artistsNamesAndAlbums = [];
+                data.map(artist => {
+                    artist.albums.map(album => { artistsNamesAndAlbums.push(artist.name + " " + album.title); });
+                });
+
+                suggestions.value = artistsNamesAndAlbums.map((item) => {
+                    return { artistAndAlbum: item, };
+                });
             }
-        }
-        catch (error) {
+        } catch (error) {
             console.log(error.message);
         }
+
+        const closeButton = document.getElementById('close-button');
+        closeButton.addEventListener('click', () => {
+            inputElement.value = "";
+            suggestions.value = [];
+        });
     });
+
+    const ul = document.getElementById("suggestions-list");
+    let liSelected;
+    let index = -1;
+
+    document.addEventListener('keydown', function (event) {
+        const len = ul.getElementsByTagName('li').length - 1;
+        let next;
+
+        if (event.code === "ArrowDown") {
+            index++;
+            if (liSelected) {
+                removeClass(liSelected, 'selected');
+                next = ul.getElementsByTagName('li')[index];
+                if (next && index <= len) {
+                    liSelected = next;
+                } else {
+                    index = 0;
+                    liSelected = ul.getElementsByTagName('li')[0];
+                }
+                addClass(liSelected, 'selected');
+            } else {
+                index = 0;
+                liSelected = ul.getElementsByTagName('li')[0];
+                addClass(liSelected, 'selected');
+            }
+        } else if (event.code === "ArrowUp") {
+            if (liSelected) {
+                removeClass(liSelected, 'selected');
+                index--;
+                next = ul.getElementsByTagName('li')[index];
+                if (next && index >= 0) {
+                    liSelected = next;
+                } else {
+                    index = len;
+                    liSelected = ul.getElementsByTagName('li')[len];
+                }
+                addClass(liSelected, 'selected');
+            } else {
+                index = 0;
+                liSelected = ul.getElementsByTagName('li')[len];
+                addClass(liSelected, 'selected');
+            }
+        }
+    });
+
+    function removeClass(el, className) {
+        if (el.classList) {
+            el.classList.remove(className);
+        } else {
+            el.className = el.className.replace(new RegExp('(^|\\b)' + className.split(' ').join('|') + '(\\b|$)', 'gi'), ' ');
+        }
+    }
+
+    function addClass(el, className) {
+        if (el.classList) {
+            el.classList.add(className);
+        } else {
+            el.className += ' ' + className;
+        }
+    }
 });
 
 async function getSuggestions(elem) {
     const validKeyword = /^[a-zA-Z\d\_]{1,}$/g;
-    if (validKeyword) {
-        const suggestions = await fetch(`http://127.0.0.1:3000/suggest/${elem}`)
+    if (validKeyword.test(elem)) {
+        const encodedKeyword = encodeURIComponent(elem);
+        const suggestions = await fetch(`http://127.0.0.1:3000/suggest/${encodedKeyword}`);
         return await suggestions.json();
     }
-
     return null;
+}
+
+function selectSuggestion(suggestion) {
+    const inputElement = document.getElementById('input-search-bar');
+    inputElement.value = suggestion;
+    suggestions.value = [];
 }
 </script>
 
 <template>
     <main class="search-wrapper">
-        <form class="input-wrapper">
-            <button id="close-button">
+        <form class="input-wrapper" autocomplete="off">
+            <button type="button" id="close-button">
                 <img id="close-icon" src="./icons/close.png">
             </button>
             <input id="input-search-bar" type="text" placeholder="Search">
-            <button id="search-button">
+            <button type="button" id="search-button">
                 <img id="search-icon" src="./icons/search.png">
             </button>
         </form>
         <ul class="suggestions-list" id="suggestions-list">
-            <li v-for="item in items" class="icon suggestions-list-element">
-                {{ item.message }}
+            <li v-for="(suggestion, index) in suggestions" :key="suggestion.artistAndAlbum"
+                class="icon suggestions-list-element" @click="selectSuggestion(suggestion.artistAndAlbum)"> {{
+                suggestion.artistAndAlbum }}
             </li>
         </ul>
     </main>
@@ -99,20 +177,27 @@ async function getSuggestions(elem) {
     border-radius: 10px;
     background-color: #FFF8F3;
     border: 2px solid #FFF8F3;
+    z-index: 99;
 }
 
 li {
     list-style-type: none;
     height: 8%;
+    z-index: 99;
 }
 
 li:hover {
     background-color: #6C63FF;
 }
 
+li.selected {
+    background-color: #6C63FF;
+}
+
 .search-wrapper {
     display: flex;
     flex-direction: column;
+    z-index: 99;
 }
 
 #input-search-bar {
@@ -126,7 +211,6 @@ li:hover {
 #input-search-bar:focus {
     outline: none;
 }
-
 
 .icon {
     padding-left: 28px;

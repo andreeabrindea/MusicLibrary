@@ -1,6 +1,6 @@
 <script setup>
-  import SearchBar from '../components/SearchBar.vue'
-  </script>
+import SearchBar from '../components/SearchBar.vue'
+</script>
 
 <template>
   <main class="page-wrapper">
@@ -15,4 +15,8 @@
   height: 100vh;
 }
 
+.search-bar {
+  position: fixed;
+  top: 50%;
+}
 </style>

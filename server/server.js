@@ -92,6 +92,11 @@ async function main() {
     }
   });
 
+  router.get("/music/by-name-album/:name/:album", async (req, res) => {
+      console.log(req.params.name);
+      console.log(req.params.album);
+  });
+
   router.get("/suggest/:searched", async (req, res, next) => {
     try {
       const { searched } = req.params;
