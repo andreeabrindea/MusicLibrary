@@ -102,7 +102,8 @@ async function main() {
       if (!artist) {
         return res.status(404).json({ message: "Album not found" });
       }
-      var album = artist.albums.filter((album) => album.title == req.params.album);
+      
+      var album = artist.albums.filter((album) => album.title == req.params.album)[0];
       res.status(200).json({ album });
     } catch (error) {
       res.status(500).json({ message: error.message });

@@ -11,8 +11,8 @@ const description = ref("");
 onMounted(async () => {
     const albumSongs = await getAlbumSongs(route.params.name, route.params.title);
     if (albumSongs != null) {
-        songs.value = albumSongs.album[0].songs;
-        description.value = albumSongs.album[0].description;
+        songs.value = albumSongs.album.songs;
+        description.value = albumSongs.album.description;
         title.value = decodeURIComponent(route.params.name);
     }
 })
