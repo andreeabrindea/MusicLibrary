@@ -70,7 +70,6 @@ async function getAlbumSongs(name, album) {
     margin-left: auto;
     margin-right: auto;
     width: 25vw;
-    /* Need a specific value to work */
 }
 
 .table-of-songs {
@@ -81,7 +80,7 @@ async function getAlbumSongs(name, album) {
 }
 
 .album-description {
-    width: 80vw;
+    width: 90vw;
     font-size: 1.3rem;
 }
 
@@ -134,6 +133,13 @@ table,
 th,
 td {
     font-size: 1.5rem;
-    border: 1px solid pink;
+}
+
+tr:nth-child(even) {
+    background-color: gray;
+}
+
+tr:hover {
+    background-color: #6C63FF;
 }
 </style>

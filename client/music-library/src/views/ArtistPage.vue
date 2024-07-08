@@ -13,19 +13,31 @@ let albums = ref([]);
 onMounted(async () => {
     artistName = route.params.name;
     const artistsAlbums = await getArtist(artistName);
-    if (artistName[artistName.length - 1] === 's') {
-        name.value = decodeURI(artistName) + `' albums`;
-    }
-    else {
-        name.value = decodeURI(artistName) + `'s albums`;
-    }
+    if (artistsAlbums != null) {
+        if (artistName[artistName.length - 1] === 's') {
+            name.value = decodeURI(artistName) + `' albums`;
+        }
+        else {
+            name.value = decodeURI(artistName) + `'s albums`;
+        }
 
-    albums.value = artistsAlbums;
+        albums.value = artistsAlbums;
+    } else {
+        name.value = "Artist not found";
+    }
 })
 
 async function getArtist(name) {
-    const artistsAlbums = await fetch(`http://127.0.0.1:3000/music/albums-by-artist/${name}`);
-    return await artistsAlbums.json();
+    try {
+        const artistsAlbums = await fetch(`http://127.0.0.1:3000/music/albums-by-artist/${name}`);
+        if (artistsAlbums.status != 200) {
+            return null;
+        }
+        return await artistsAlbums.json();
+    }
+    catch (error) {
+        console.log(error.message);
+    }
 }
 
 function goToAlbumPage(album) {
@@ -46,10 +58,13 @@ function goToAlbumPage(album) {
             <div class="page-wrapper">
                 <SearchBar class="search-bar"></SearchBar>
             </div>
+            <div v-if="albums.length == 0" class="not-found-message">
+                <h1>{{ name }}</h1>
+            </div>
         </header>
-        <img id="artist-icon" src="../assets/artist.png">
+        <img v-if="albums.length" id="artist-icon" src="../assets/artist.png">
         <main class="artist-content">
-            <h1>{{ name }}</h1>
+            <h1 v-if="albums.length">{{ name }}</h1>
             <ul>
                 <li v-for="album in albums" @click="goToAlbumPage(album)"> {{ album.title }}</li>
             </ul>
@@ -57,6 +72,16 @@ function goToAlbumPage(album) {
     </div>
 </template>
 <style scoped>
+.not-found-message {
+    position: absolute;
+    top: 10%;
+    left: 0;
+    right: 0;
+    margin-left: auto;
+    margin-right: auto;
+    width: 25vw;
+}
+
 .page {
     height: 100vh;
 }
