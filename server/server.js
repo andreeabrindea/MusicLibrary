@@ -120,7 +120,25 @@ async function main() {
           { "albums.songs.title": { $regex: searched, $options: "i" } },
         ],
       });
-      res.status(200).json(artists);
+      const response = artists.map(artist => {
+        const filteredAlbums = artist.albums.filter(album =>
+          album.title.match(new RegExp(searched, "i")) ||
+          album.songs.some(song => song.title.match(new RegExp(searched, "i")))
+        ).map(album => ({
+          title: album.title,
+          songs: album.songs.filter(song =>
+            song.title.match(new RegExp(searched, "i"))
+          ).map(song => ({
+            title: song.title,
+          })),
+        }));
+  
+        return {
+          name: artist.name,
+          albums: filteredAlbums,
+        };
+      }).filter(artist => artist.albums.length > 0);
+        res.status(200).json(response);
     } catch (error) {
       res.status(500).json({ message: error.message });
     }
