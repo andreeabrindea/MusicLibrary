@@ -99,7 +99,6 @@ async function main() {
         name: decodeURIComponent(req.params.artist),
         "albums.title": decodeURIComponent(req.params.album)
       });
-      console.log(decodeURIComponent(req.params.artist));
       if (!artist) {
         return res.status(404).json({ message: "Album not found" });
       }

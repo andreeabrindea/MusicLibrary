@@ -2,9 +2,11 @@
 import SearchBar from '../components/SearchBar.vue'
 import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router'
+import { useRouter } from 'vue-router';
 
 let artistName = ref("");
 const route = useRoute();
+const router = useRouter();
 let name = ref("");
 let albums = ref([]);
 
@@ -26,6 +28,15 @@ async function getArtist(name) {
     return await artistsAlbums.json();
 }
 
+function goToAlbumPage(album) {
+    try {
+        router.push({ name: 'album', params: { name: artistName, title: album.title } })
+    }
+    catch (error) {
+        console.log(error.message);
+    }
+}
+
 </script>
 
 <template>
@@ -40,7 +51,7 @@ async function getArtist(name) {
         <main class="artist-content">
             <h1>{{ name }}</h1>
             <ul>
-                <li v-for="album in albums"> {{ album.title }}</li>
+                <li v-for="album in albums" @click="goToAlbumPage(album)"> {{ album.title }}</li>
             </ul>
         </main>
     </div>
