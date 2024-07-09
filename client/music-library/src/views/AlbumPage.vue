@@ -1,6 +1,6 @@
 <script setup>
 import SearchBar from '../components/SearchBar.vue'
-import { ref, onMounted } from 'vue';
+import { watch, ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router'
 const route = useRoute();
 
@@ -8,14 +8,28 @@ let title = ref("");
 const songs = ref([]);
 const description = ref("");
 
-onMounted(async () => {
+async function loadAlbums() {
     const albumSongs = await getAlbumSongs(route.params.name, route.params.title);
     if (albumSongs != null) {
         songs.value = albumSongs.album.songs;
         description.value = albumSongs.album.description;
         title.value = decodeURIComponent(route.params.name);
     }
-})
+}
+
+onMounted(loadAlbums);
+
+watch(() => route.params.title, async (newTitle, oldTitle) => {
+    if (newTitle !== oldTitle) {
+        await loadAlbums();
+    }
+});
+
+watch(() => route.params.name, async (newName, oldName) => {
+    if (newName !== oldName) {
+        await loadAlbums();
+    }
+});
 
 async function getAlbumSongs(name, album) {
     const songs = await fetch(`http://127.0.0.1:3000/songs/${name}/${album}`);

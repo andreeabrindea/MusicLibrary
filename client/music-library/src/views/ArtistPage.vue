@@ -1,6 +1,6 @@
 <script setup>
 import SearchBar from '../components/SearchBar.vue'
-import { ref, onMounted } from 'vue';
+import { watch, ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router'
 import { useRouter } from 'vue-router';
 
@@ -10,22 +10,30 @@ const router = useRouter();
 let name = ref("");
 let albums = ref([]);
 
-onMounted(async () => {
-    artistName = route.params.name;
-    const artistsAlbums = await getArtist(artistName);
+const loadArtistData = async () => {
+    artistName.value = route.params.name;
+    const artistsAlbums = await getArtist(artistName.value);
     if (artistsAlbums != null) {
-        if (artistName[artistName.length - 1] === 's') {
-            name.value = decodeURI(artistName) + `' albums`;
-        }
-        else {
-            name.value = decodeURI(artistName) + `'s albums`;
+        if (artistName.value[artistName.value.length - 1] === 's') {
+            name.value = decodeURI(artistName.value) + `' albums`;
+        } else {
+            name.value = decodeURI(artistName.value) + `'s albums`;
         }
 
         albums.value = artistsAlbums;
     } else {
         name.value = "Artist not found";
+        albums.value = [];
     }
-})
+};
+
+onMounted(loadArtistData);
+
+watch(() => route.params.name, async (newName, oldName) => {
+    if (newName !== oldName) {
+        await loadArtistData();
+    }
+});
 
 async function getArtist(name) {
     try {
