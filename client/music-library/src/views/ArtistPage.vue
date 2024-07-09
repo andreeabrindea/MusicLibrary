@@ -49,8 +49,9 @@ async function getArtist(name) {
 }
 
 function goToAlbumPage(album) {
+    console.log(album.title)
     try {
-        router.push({ name: 'album', params: { name: artistName, title: album.title } })
+        router.push({ name: 'album', params: { name: route.params.name, title: album.title } })
     }
     catch (error) {
         console.log(error.message);
@@ -60,24 +61,22 @@ function goToAlbumPage(album) {
 </script>
 
 <template>
-    <div class="page">
-        <header>
-            <a href="/"><img src="../assets/back.png" id="back-button"></a>
-            <div class="page-wrapper">
-                <SearchBar class="search-bar"></SearchBar>
-            </div>
-            <div v-if="albums.length == 0" class="not-found-message">
-                <h1>{{ name }}</h1>
-            </div>
-        </header>
-        <img v-if="albums.length" id="artist-icon" src="../assets/artist.png">
-        <main class="artist-content">
-            <h1 v-if="albums.length">{{ name }}</h1>
-            <ul>
-                <li v-for="album in albums" @click="goToAlbumPage(album)"> {{ album.title }}</li>
-            </ul>
-        </main>
-    </div>
+    <header>
+        <a href="/"><img src="../assets/back.png" id="back-button"></a>
+        <div class="page-wrapper">
+            <SearchBar class="search-bar"></SearchBar>
+        </div>
+        <div v-if="albums.length == 0" class="not-found-message">
+            <h1>{{ name }}</h1>
+        </div>
+    </header>
+    <img v-if="albums.length" id="artist-icon" src="../assets/artist.png">
+    <main class="artist-content">
+        <h1 v-if="albums.length">{{ name }}</h1>
+        <ul>
+            <li v-for="album in albums" @click="goToAlbumPage(album)"> {{ album.title }}</li>
+        </ul>
+    </main>
 </template>
 <style scoped>
 .not-found-message {
@@ -140,8 +139,9 @@ li:hover {
 #artist-icon {
     position: absolute;
     top: 80px;
+    right: 40vw;
     z-index: 0;
-    height: 400px;
+    height: 40vh;
 }
 
 .artist-content {
@@ -150,7 +150,6 @@ li:hover {
     width: 100vw;
     z-index: 2;
     top: 380px;
-    text-align: left;
-    margin-left: 4vw;
+    text-align: center;
 }
 </style>

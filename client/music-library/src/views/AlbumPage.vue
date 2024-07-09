@@ -4,6 +4,7 @@ import { watch, ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router'
 const route = useRoute();
 
+let artistName = ref("");
 let title = ref("");
 const songs = ref([]);
 const description = ref("");
@@ -13,7 +14,8 @@ async function loadAlbums() {
     if (albumSongs != null) {
         songs.value = albumSongs.album.songs;
         description.value = albumSongs.album.description;
-        title.value = decodeURIComponent(route.params.name);
+        artistName.value = decodeURIComponent(route.params.name);
+        title.value = decodeURIComponent(route.params.title);
     }
 }
 
@@ -52,30 +54,39 @@ async function getAlbumSongs(name, album) {
         <div v-if="songs.length == 0" class="not-found-message">
             <h1>Album not found</h1>
         </div>
-        <img v-if="songs.length" id="artist-icon" src="../assets/album.png">
+        <img v-if="songs.length" id="album-icon" src="../assets/album.png">
     </header>
-    <main class="artist-content">
-        <h1>{{ title }}</h1>
+    <main v-if="songs.length" class="album-content">
+        <h1 class="album-title">{{ title }} by {{ artistName }}</h1>
         <p class="album-description">{{ description }}</p>
-        <section v-if="songs.length" class="table-of-songs">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Title</th>
-                        <th>Length</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr v-for="song in songs" :key="song._id">
-                        <td>{{ song.title }}</td>
-                        <td>{{ song.length }}</td>
-                    </tr>
-                </tbody>
-            </table>
-        </section>
+        <h2 style="margin-left: 4vw;">{{ title }} contains {{ songs.length }} songs:</h2>
+        <ul>
+            <li v-for="(song, index) in songs" :key="song._id">
+                <p class="song-title"><i>{{ index + 1 }}</i> <b> {{ song.title }}</b></p>
+                <p class="song-length">{{ song.length }}</p>
+            </li>
+        </ul>
     </main>
 </template>
 <style scoped>
+li {
+    list-style-type: none;
+    margin-left: 4vw;
+}
+
+.song-title {
+    font-size: 1.2rem;
+    margin-bottom: 1px;
+}
+
+.album-title {
+    text-align: center;
+}
+
+.song-length {
+    margin-top: 1px;
+}
+
 .not-found-message {
     position: absolute;
     top: 10%;
@@ -88,7 +99,7 @@ async function getAlbumSongs(name, album) {
 
 .table-of-songs {
     width: 100vw;
-    height: 100vh;
+    height: 50vh;
     display: flex;
     justify-content: center;
 }
@@ -96,6 +107,7 @@ async function getAlbumSongs(name, album) {
 .album-description {
     width: 90vw;
     font-size: 1.3rem;
+    margin-left: 4vw;
 }
 
 #back-button {
@@ -116,25 +128,25 @@ async function getAlbumSongs(name, album) {
     position: relative;
 }
 
-#artist-icon {
+#album-icon {
     position: absolute;
     top: 80px;
+    right: 40vw;
     z-index: 0;
-    height: 400px;
+    height: 40vh;
+    margin-left: 2vw;
 }
 
 .search-bar {
     z-index: 99;
 }
 
-.artist-content {
+.album-content {
     position: absolute;
     margin-top: 20vh;
     width: 100vw;
     z-index: 2;
     top: 380px;
-    text-align: left;
-    margin-left: 4vw;
 }
 
 table {
@@ -151,9 +163,5 @@ td {
 
 tr:nth-child(even) {
     background-color: gray;
-}
-
-tr:hover {
-    background-color: #6C63FF;
 }
 </style>

@@ -66,7 +66,7 @@ async function main() {
   router.get("/music/albums-by-artist/:name", async (req, res) => {
     try {
       const { name } = req.params;
-      const artist = await Artist.findOne({ name: decodeURIComponent(name) });
+      const artist = await Artist.findOne({ name: new RegExp(`^${decodeURIComponent(name)}$`, 'i') });
 
       if (!artist) {
         return res.status(400).json({ message: "Artist not found" });
@@ -77,6 +77,7 @@ async function main() {
       res.status(500).json({ message: error.message });
     }
   });
+  
 
   router.get("/artist/by-song/:title", async (req, res) => {
     try {

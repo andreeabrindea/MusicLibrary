@@ -50,6 +50,7 @@ onMounted(async () => {
 
         const searchButton = document.getElementById('search-button');
         searchButton.addEventListener('click', () => {
+
             if (inputElement.value.trim() === "") {
                 return;
             }
@@ -166,7 +167,7 @@ function selectSuggestion(suggestion) {
             <button type="button" id="close-button">
                 <img id="close-icon" src="./icons/close.png">
             </button>
-            <input id="input-search-bar" type="text" placeholder="Search">
+            <input id="input-search-bar" type="text" placeholder="Search artists or albums">
             <button id="search-button" type="submit">
                 <img id="search-icon" src="./icons/search.png">
             </button>
@@ -188,14 +189,19 @@ function selectSuggestion(suggestion) {
     flex-direction: row;
     align-items: center;
     gap: 4px;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    margin-top: 8px;
+    margin-bottom: 8px;
+    height: 25px;
 }
 
 #search-button,
 #close-button {
     height: 4vh;
     border: 0;
-    background-color: #FFF8F3;
+    background-color: transparent;
+    margin-right: 10px;
+    margin-left: 10px;
 }
 
 #close-button {
@@ -220,19 +226,19 @@ function selectSuggestion(suggestion) {
 .input-wrapper {
     display: flex;
     flex-direction: row;
-    background-color: #FFF8F3;
+    background-color: #EFF1F2;
     border: 2px solid gray;
-    border-radius: 4px;
+    border-radius: 40px;
     align-items: center;
 }
 
 .suggestions-list {
     margin: 0;
     padding: 0;
-    border-radius: 10px;
-    background-color: #FFF8F3;
-    border: 2px solid #FFF8F3;
+    border-radius: 20px;
+    background-color: #EFF1F3;
     z-index: 99;
+    margin-top: 10px;
 }
 
 li {
@@ -259,7 +265,7 @@ li.selected {
     height: 4vh;
     width: 50vw;
     margin-bottom: 2px;
-    background-color: #FFF8F3;
+    background-color: #EFF1F3;
     border: 0;
 }
 
@@ -270,17 +276,11 @@ li.selected {
 .icon {
     padding-left: 28px;
     background: url("https://static.thenounproject.com/png/101791-200.png") no-repeat left;
-    background-size: 24px;
+    background-size: 20px;
+    margin-left: 2px;
 }
 
 .icon:hover {
     cursor: pointer;
-}
-
-.suggestion-list-element {
-    display: flex;
-    flex-direction: row;
-    gap: 1;
-    box-sizing: content-box;
 }
 </style>
