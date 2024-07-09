@@ -109,7 +109,6 @@ li {
 
 li:hover {
     cursor: pointer;
-    height: 18vh;
     background-color: #6C63FF;
 }
 

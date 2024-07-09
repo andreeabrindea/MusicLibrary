@@ -3,12 +3,13 @@ import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 
 const suggestions = ref([]);
-let artistName = ref(null);
+let artistName = ref("");
+let albumName = ref("");
+let songName = ref("");
 const router = useRouter();
 
 onMounted(async () => {
     const inputElement = document.getElementById('input-search-bar');
-
     inputElement.addEventListener('input', async () => {
         try {
             if (inputElement.value === "") {
@@ -18,17 +19,23 @@ onMounted(async () => {
 
             const data = await getSuggestions(inputElement.value);
             if (data != null) {
-                const artistsNamesAndAlbums = [];
-                data.map(artist => {
-                    artist.albums.map(album => {
-                        artistsNamesAndAlbums.push({ name: artist.name, title: album.title }
-                        );
-                    });
-                });
-
-                suggestions.value = artistsNamesAndAlbums.map((item) => {
-                    return { artist: item.name, album: item.title };
-                });
+                suggestions.value = data.flatMap((item) => {
+                    const results = [];
+                    if (item.name.toLowerCase().includes(inputElement.value)) {
+                        results.push({ artist: item.name });
+                    }
+                    if (item.albums.length > 0) {
+                        item.albums.forEach(album => {
+                            if (album.songs.length === 0) {
+                                results.push({ artist: item.name, album: album.title });
+                            }
+                            album.songs.forEach(song => {
+                                results.push({ artist: item.name, album: album.title, song: song.title });
+                            });
+                        });
+                    }
+                    return results;
+                }).slice(0, 10);
             }
         } catch (error) {
             console.log(error.message);
@@ -43,6 +50,16 @@ onMounted(async () => {
 
         const searchButton = document.getElementById('search-button');
         searchButton.addEventListener('click', () => {
+            if (inputElement.value.trim() === "") {
+                return;
+            }
+
+            if (typeof (albumName) === 'string' && albumName !== "") {
+                router.push({ name: 'album', params: { name: encodeURI(artistName), title: encodeURI(albumName) } })
+                inputElement.value = "";
+                return;
+            }
+
             router.push({ name: 'artist', params: { name: encodeURI(artistName) } })
             inputElement.value = "";
         });
@@ -122,29 +139,44 @@ async function getSuggestions(elem) {
 
 function selectSuggestion(suggestion) {
     const inputElement = document.getElementById('input-search-bar');
-    inputElement.value = suggestion.artist + ' ' + suggestion.album;
     artistName = suggestion.artist;
+    if (suggestion.song) {
+        inputElement.value = suggestion.artist + ' ' + suggestion.album + ' ' + suggestion.song;
+        albumName = suggestion.album;
+        songName = suggestion.song;
+        suggestions.value = [];
+        return
+    }
+
+    if (suggestion.album) {
+        inputElement.value = suggestion.artist + ' ' + suggestion.album;
+        albumName = suggestion.album;
+        suggestions.value = [];
+        return
+    }
+
+    inputElement.value = suggestion.artist;
     suggestions.value = [];
 }
-
 </script>
 
 <template>
     <main class="search-wrapper">
-        <form class="input-wrapper" autocomplete="off">
+        <form id="search-form" class="input-wrapper" autocomplete="off" @submit.prevent="myFunction">
             <button type="button" id="close-button">
                 <img id="close-icon" src="./icons/close.png">
             </button>
             <input id="input-search-bar" type="text" placeholder="Search">
-            <button type="button" id="search-button">
+            <button id="search-button" type="submit">
                 <img id="search-icon" src="./icons/search.png">
             </button>
         </form>
         <ul class="suggestions-list" id="suggestions-list">
-            <li v-for="(suggestion, index) in suggestions" :key="suggestion.artist"
-                class="icon suggestions-list-element" @click="selectSuggestion(suggestion)"> {{
-                suggestion.artist }}
+            <li v-for="(suggestion, index) in suggestions" :key="suggestion.id" class="icon suggestions-list-element"
+                @click="selectSuggestion(suggestion)"> {{
+            suggestion.artist }}
                 <p>{{ suggestion.album }}</p>
+                <p>{{ suggestion.song }}</p>
             </li>
         </ul>
     </main>
@@ -155,7 +187,8 @@ function selectSuggestion(suggestion) {
     display: flex;
     flex-direction: row;
     align-items: center;
-    gap: 8px;
+    gap: 4px;
+    flex-wrap: wrap;
 }
 
 #search-button,
