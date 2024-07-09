@@ -2,7 +2,10 @@
 import SearchBar from '../components/SearchBar.vue'
 import { watch, ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router'
+import { useRouter } from 'vue-router';
+
 const route = useRoute();
+const router = useRouter();
 
 let artistName = ref("");
 let title = ref("");
@@ -42,6 +45,11 @@ async function getAlbumSongs(name, album) {
     }
     return await songs.json();
 }
+
+function goToArtistPage(elem) {
+    router.push({ name: 'artist', params: { name: encodeURIComponent(elem) } })
+
+}
 </script>
 <template>
     <nav>
@@ -57,7 +65,8 @@ async function getAlbumSongs(name, album) {
         <img v-if="songs.length" id="album-icon" src="../assets/album.png">
     </header>
     <main v-if="songs.length" class="album-content">
-        <h1 class="album-title">{{ title }} by {{ artistName }}</h1>
+        <h1 class="album-title">{{ title }}</h1>
+        <h2 class="album-title" @click="goToArtistPage(artistName)">{{ artistName }}</h2>
         <p class="album-description">{{ description }}</p>
         <h2 style="margin-left: 4vw;">{{ title }} contains {{ songs.length }} songs:</h2>
         <ul>

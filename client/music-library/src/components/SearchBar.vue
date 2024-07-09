@@ -21,7 +21,7 @@ onMounted(async () => {
             if (data != null) {
                 suggestions.value = data.flatMap((item) => {
                     const results = [];
-                    if (item.name.toLowerCase().includes(inputElement.value)) {
+                    if (item.name.toLowerCase().includes(inputElement.value.toLowerCase())) {
                         results.push({ artist: item.name });
                     }
                     if (item.albums.length > 0) {
@@ -50,18 +50,8 @@ onMounted(async () => {
 
         const searchButton = document.getElementById('search-button');
         searchButton.addEventListener('click', () => {
-
-            if (inputElement.value.trim() === "") {
-                return;
-            }
-
-            if (typeof (albumName) === 'string' && albumName !== "") {
-                router.push({ name: 'album', params: { name: encodeURI(artistName), title: encodeURI(albumName) } })
-                inputElement.value = "";
-                return;
-            }
-
-            router.push({ name: 'artist', params: { name: encodeURI(artistName) } })
+            router.push({ name: 'search', params: { searched: encodeURIComponent(inputElement.value) } })
+            suggestions.value = [];
             inputElement.value = "";
         });
     });

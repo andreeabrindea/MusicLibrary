@@ -49,7 +49,6 @@ async function getArtist(name) {
 }
 
 function goToAlbumPage(album) {
-    console.log(album.title)
     try {
         router.push({ name: 'album', params: { name: route.params.name, title: album.title } })
     }
