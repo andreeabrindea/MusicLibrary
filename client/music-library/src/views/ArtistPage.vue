@@ -4,40 +4,20 @@ import { watch, ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router'
 import { useRouter } from 'vue-router';
 
-let artistName = ref("");
 const route = useRoute();
 const router = useRouter();
-let name = ref("");
-let albums = ref([]);
+const artist = ref({
+    name: '',
+    albums: []
+})
 
-const loadArtistData = async () => {
-    artistName.value = route.params.name;
-    const artistsAlbums = await getArtist(artistName.value);
-    if (artistsAlbums != null) {
-        if (artistName.value[artistName.value.length - 1] === 's') {
-            name.value = decodeURI(artistName.value) + `' albums`;
-        } else {
-            name.value = decodeURI(artistName.value) + `'s albums`;
-        }
-
-        albums.value = artistsAlbums;
-    } else {
-        name.value = "Artist not found";
-        albums.value = [];
-    }
-};
-
-onMounted(loadArtistData);
-
-watch(() => route.params.name, async (newName, oldName) => {
-    if (newName !== oldName) {
-        await loadArtistData();
-    }
+onMounted(async () => {
+    artist.value = await getArtist(route.params._id);
 });
 
-async function getArtist(name) {
+async function getArtist(id) {
     try {
-        const artistsAlbums = await fetch(`http://127.0.0.1:3000/music/albums-by-artist/${name}`);
+        const artistsAlbums = await fetch(`http://127.0.0.1:3000/artists/${id}`);
         if (artistsAlbums.status != 200) {
             return null;
         }
@@ -50,13 +30,12 @@ async function getArtist(name) {
 
 function goToAlbumPage(album) {
     try {
-        router.push({ name: 'album', params: { name: route.params.name, title: encodeURIComponent(album.title) } })
+        router.push({ name: 'album', params: { name: route.params._id, title: encodeURIComponent(album.title) } })
     }
     catch (error) {
         console.log(error.message);
     }
 }
-
 </script>
 
 <template>
@@ -65,15 +44,15 @@ function goToAlbumPage(album) {
         <div class="page-wrapper">
             <SearchBar class="search-bar"></SearchBar>
         </div>
-        <div v-if="albums.length == 0" class="not-found-message">
-            <h1>{{ name }}</h1>
-        </div>
     </header>
-    <img v-if="albums.length" id="artist-icon" src="../assets/artist.png">
+    <img id="artist-icon" src="../assets/artist.png">
     <main class="artist-content">
-        <h1 v-if="albums.length">{{ name }}</h1>
+        <h1>{{ artist.name }}</h1>
         <ul>
-            <li v-for="album in albums" @click="goToAlbumPage(album)"> {{ album.title }}</li>
+            <router-link :to="{ name: 'addAlbum', params: { artist: route.params.name } }">
+                <li>Add new album</li>
+            </router-link>
+            <li v-for="album in artist.albums" @click="goToAlbumPage(album)"> {{ album.title }}</li>
         </ul>
     </main>
 </template>

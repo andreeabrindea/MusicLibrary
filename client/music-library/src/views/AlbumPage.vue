@@ -7,37 +7,21 @@ import { useRouter } from 'vue-router';
 const route = useRoute();
 const router = useRouter();
 
-let artistName = ref("");
-let title = ref("");
-const songs = ref([]);
-const description = ref("");
+const album = ref({
+    title: '',
+    description: '',
+    songs: []
+})
 
 async function loadAlbums() {
-    const albumSongs = await getAlbumSongs(route.params.name, route.params.title);
-    if (albumSongs != null) {
-        songs.value = albumSongs.album.songs;
-        description.value = albumSongs.album.description;
-        artistName.value = decodeURIComponent(route.params.name);
-        title.value = decodeURIComponent(route.params.title);
-    }
+    album.value = await getAlbumSongs(route.params.title);
+    console.log(album.value);
 }
 
-onMounted(loadAlbums);
+onMounted(async () => await loadAlbums());
 
-watch(() => route.params.title, async (newTitle, oldTitle) => {
-    if (newTitle !== oldTitle) {
-        await loadAlbums();
-    }
-});
-
-watch(() => route.params.name, async (newName, oldName) => {
-    if (newName !== oldName) {
-        await loadAlbums();
-    }
-});
-
-async function getAlbumSongs(name, album) {
-    const songs = await fetch(`http://127.0.0.1:3000/songs/${name}/${album}`);
+async function getAlbumSongs(title) {
+    const songs = await fetch(`http://127.0.0.1:3000/songs/${route.params._id}/${title}`);
     if (songs.status != 200) {
         {
             return null;
@@ -59,18 +43,15 @@ function goToArtistPage(elem) {
         </div>
     </nav>
     <header>
-        <div v-if="songs.length == 0" class="not-found-message">
-            <h1>Album not found</h1>
-        </div>
-        <img v-if="songs.length" id="album-icon" src="../assets/album.png">
+        <img id="album-icon" src="../assets/album.png">
     </header>
-    <main v-if="songs.length" class="album-content">
+    <main class="album-content">
         <h1 class="album-title">{{ title }}</h1>
         <h2 class="album-title" @click="goToArtistPage(artistName)">{{ artistName }}</h2>
-        <p class="album-description">{{ description }}</p>
-        <h2 style="margin-left: 4vw;">{{ title }} contains {{ songs.length }} songs:</h2>
+        <p class="album-description">{{ album.description }}</p>
+        <h2 style="margin-left: 4vw;">{{ album.title }} contains {{ album.songs?.length ?? 0 }} songs:</h2>
         <ul>
-            <li v-for="(song, index) in songs" :key="song._id">
+            <li v-for="(song, index) in album.songs" :key="song._id">
                 <p class="song-title"><i>{{ index + 1 }}</i> <b> {{ song.title }}</b></p>
                 <p class="song-length">{{ song.length }}</p>
             </li>

@@ -6,7 +6,7 @@ const router = useRouter();
 
 const props = defineProps(['artists'])
 function goToPage(artist) {
-    router.push({ name: 'artist', params: { name: encodeURI(artist.name) } })
+    router.push({ name: 'artist', params: { _id: artist._id } })
 }
 </script>
 
