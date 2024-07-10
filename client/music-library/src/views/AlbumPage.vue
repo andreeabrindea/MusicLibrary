@@ -78,6 +78,8 @@ function goToArtistPage(elem) {
     </main>
 </template>
 <style scoped>
+@import url('https://fonts.googleapis.com/css2?family=Josefin+Sans:ital,wght@0,100..700;1,100..700&display=swap');
+
 li {
     list-style-type: none;
     margin-left: 4vw;
@@ -90,6 +92,7 @@ li {
 
 .album-title {
     text-align: center;
+    font-family: "Josefin Sans", sans-serif;
 }
 
 .song-length {

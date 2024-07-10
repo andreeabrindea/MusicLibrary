@@ -50,7 +50,7 @@ async function getArtist(name) {
 
 function goToAlbumPage(album) {
     try {
-        router.push({ name: 'album', params: { name: route.params.name, title: album.title } })
+        router.push({ name: 'album', params: { name: route.params.name, title: encodeURIComponent(album.title) } })
     }
     catch (error) {
         console.log(error.message);
@@ -150,5 +150,6 @@ li:hover {
     z-index: 2;
     top: 380px;
     text-align: center;
+    font-family: "Josefin Sans", sans-serif;
 }
 </style>

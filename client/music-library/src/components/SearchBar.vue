@@ -1,122 +1,54 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, defineModel } from 'vue';
 import { useRouter } from 'vue-router';
 
 const suggestions = ref([]);
-let artistName = ref("");
-let albumName = ref("");
-let songName = ref("");
 const router = useRouter();
+const selectedIndex = ref(-1);
+const inputElement = defineModel('');
+const writtenInput = ref('');
 
-onMounted(async () => {
-    const inputElement = document.getElementById('input-search-bar');
-    inputElement.addEventListener('input', async () => {
-        try {
-            if (inputElement.value === "") {
-                suggestions.value = [];
-                return;
-            }
+async function suggestData() {
+    const data = await getSuggestions(inputElement.value);
+    manipulateListOfResultSuggestions(data, suggestions, inputElement.value, 10);
+}
 
-            const data = await getSuggestions(inputElement.value);
-            if (data != null) {
-                suggestions.value = data.flatMap((item) => {
-                    const results = [];
-                    if (item.name.toLowerCase().includes(inputElement.value.toLowerCase())) {
-                        results.push({ artist: item.name });
-                    }
-                    if (item.albums.length > 0) {
-                        item.albums.forEach(album => {
-                            if (album.songs.length === 0) {
-                                results.push({ artist: item.name, album: album.title });
-                            }
-                            album.songs.forEach(song => {
-                                results.push({ artist: item.name, album: album.title, song: song.title });
-                            });
-                        });
-                    }
-                    return results;
-                }).slice(0, 10);
-            }
-        } catch (error) {
-            console.log(error.message);
-        }
+function clearData() {
+    selectedIndex.value = -1;
+    inputElement.value = "";
+    suggestions.value = [];
+    writtenInput.value = '';
+}
 
-        const closeButton = document.getElementById('close-button');
-        closeButton.addEventListener('click', () => {
-            inputElement.value = "";
-            suggestions.value = [];
-        });
+function search(data) {
+    router.push({ name: 'search', params: { searched: encodeURI(data) } })
+    clearData();
+}
 
-
-        const searchButton = document.getElementById('search-button');
-        searchButton.addEventListener('click', () => {
-            router.push({ name: 'search', params: { searched: encodeURIComponent(inputElement.value) } })
-            suggestions.value = [];
-            inputElement.value = "";
-        });
-    });
-
-    const ul = document.getElementById("suggestions-list");
-    let liSelected;
-    let index = -1;
-
-    document.addEventListener('keydown', function (event) {
-        const len = ul.getElementsByTagName('li').length - 1;
-        let next;
-
-        if (event.code === "ArrowDown") {
-            index++;
-            if (liSelected) {
-                removeClass(liSelected, 'selected');
-                next = ul.getElementsByTagName('li')[index];
-                if (next && index <= len) {
-                    liSelected = next;
-                } else {
-                    index = 0;
-                    liSelected = ul.getElementsByTagName('li')[0];
-                }
-                addClass(liSelected, 'selected');
-            } else {
-                index = 0;
-                liSelected = ul.getElementsByTagName('li')[0];
-                addClass(liSelected, 'selected');
-            }
-        } else if (event.code === "ArrowUp") {
-            if (liSelected) {
-                removeClass(liSelected, 'selected');
-                index--;
-                next = ul.getElementsByTagName('li')[index];
-                if (next && index >= 0) {
-                    liSelected = next;
-                } else {
-                    index = len;
-                    liSelected = ul.getElementsByTagName('li')[len];
-                }
-                addClass(liSelected, 'selected');
-            } else {
-                index = 0;
-                liSelected = ul.getElementsByTagName('li')[len];
-                addClass(liSelected, 'selected');
-            }
-        }
-    });
-
-    function removeClass(el, className) {
-        if (el.classList) {
-            el.classList.remove(className);
-        } else {
-            el.className = el.className.replace(new RegExp('(^|\\b)' + className.split(' ').join('|') + '(\\b|$)', 'gi'), ' ');
-        }
+function manipulateListOfResultSuggestions(data, results, input, maximumNoOfElements) {
+    if (input === '' || input === undefined || input === null) {
+        suggestions.value = [];
+        return;
     }
 
-    function addClass(el, className) {
-        if (el.classList) {
-            el.classList.add(className);
-        } else {
-            el.className += ' ' + className;
-        }
+    if (data != null) {
+        results.value = data.flatMap((item) => {
+            const results = [];
+            if (item.name.toLowerCase().includes(input)) {
+                results.push({ artist: item.name });
+            }
+            if (item.albums.length > 0) {
+                item.albums.forEach(album => {
+                    if (album.title.includes(input)) { results.push({ artist: item.name, album: album.title }); }
+                    album.songs.forEach(song => {
+                        results.push({ artist: item.name, album: album.title, song: song.title });
+                    });
+                });
+            }
+            return results;
+        }).slice(0, maximumNoOfElements);
     }
-});
+}
 
 async function getSuggestions(elem) {
     const validKeyword = /^[a-zA-Z\d\_]{1,}$/g;
@@ -128,44 +60,54 @@ async function getSuggestions(elem) {
     return null;
 }
 
-function selectSuggestion(suggestion) {
-    const inputElement = document.getElementById('input-search-bar');
-    artistName = suggestion.artist;
-    if (suggestion.song) {
-        inputElement.value = suggestion.artist + ' ' + suggestion.album + ' ' + suggestion.song;
-        albumName = suggestion.album;
-        songName = suggestion.song;
-        suggestions.value = [];
-        return
-    }
-
+function normalizeSuggestion(suggestion) {
+    let searchInput = suggestion.artist;
     if (suggestion.album) {
-        inputElement.value = suggestion.artist + ' ' + suggestion.album;
-        albumName = suggestion.album;
-        suggestions.value = [];
-        return
+        searchInput += ` ${suggestion.album}`;
+    }
+    if (suggestion.song) {
+        searchInput += ` ${suggestion.song}`;
     }
 
-    inputElement.value = suggestion.artist;
-    suggestions.value = [];
+    return searchInput;
+}
+
+function selectSuggestion(suggestion) {
+    const searchInput = normalizeSuggestion(suggestion);
+    search(searchInput);
+}
+
+function moveCursor(step) {
+    if (selectedIndex.value + step <= -1 || selectedIndex.value + step >= suggestions.value.length) {
+        inputElement.value = writtenInput.value;
+        return;
+    }
+
+    if (writtenInput.value === '') {
+        writtenInput.value = inputElement.value;
+    }
+    selectedIndex.value += step;
+    inputElement.value = normalizeSuggestion(suggestions.value[selectedIndex.value]);
 }
 </script>
 
 <template>
     <main class="search-wrapper">
         <form id="search-form" class="input-wrapper" autocomplete="off" @submit.prevent="myFunction">
-            <button type="button" id="close-button">
+            <button type="button" id="close-button" @click="clearData">
                 <img id="close-icon" src="./icons/close.png">
             </button>
-            <input id="input-search-bar" type="text" placeholder="Search artists or albums">
-            <button id="search-button" type="submit">
+            <input id="input-search-bar" type="text" placeholder="Search artists or albums" v-model="inputElement"
+                @input="suggestData" @click="suggestData" @keypress.enter="search(inputElement)"
+                @keyup.down="moveCursor(1)" @keyup.up="moveCursor(-1)">
+            <button id="search-button" type="submit" @click="search(inputElement)">
                 <img id="search-icon" src="./icons/search.png">
             </button>
         </form>
         <ul class="suggestions-list" id="suggestions-list">
             <li v-for="(suggestion, index) in suggestions" :key="suggestion.id" class="icon suggestions-list-element"
-                @click="selectSuggestion(suggestion)"> {{
-            suggestion.artist }}
+                @click="selectSuggestion(suggestion)" :class="index === selectedIndex ? 'selected' : ''">
+                <p>{{ suggestion.artist }}</p>
                 <p>{{ suggestion.album }}</p>
                 <p>{{ suggestion.song }}</p>
             </li>

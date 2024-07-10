@@ -22,7 +22,7 @@ async function loadResults() {
 
     const data = await getSearchResults(route.params.searched);
     if (data.length > 0) {
-        message.value = "ALL RESULTS";
+        message.value = "TOP RESULTS";
         results.value = data.flatMap((item) => {
             const results = [];
             if (item.name.toLowerCase().includes(decodeURI(route.params.searched).toLowerCase())) {
@@ -30,9 +30,7 @@ async function loadResults() {
             }
             if (item.albums.length > 0) {
                 item.albums.forEach(album => {
-                    if (album.songs.length === 0) {
-                        results.push({ artist: item.name, album: album.title });
-                    }
+                    if (album.title.includes(decodeURI(route.params.searched).toLowerCase())) { results.push({ artist: item.name, album: album.title }); }
                     album.songs.forEach(song => {
                         results.push({ artist: item.name, album: album.title, song: song.title });
                     });
@@ -44,6 +42,7 @@ async function loadResults() {
         message.value = "NO RESULTS FOUND"
     }
 }
+
 async function getSearchResults(elem) {
     const suggestions = await fetch(`http://127.0.0.1:3000/suggest/${elem}`);
     return await suggestions.json();
@@ -52,7 +51,7 @@ async function getSearchResults(elem) {
 function goToPage(result) {
     try {
         if (result.album) {
-            router.push({ name: 'album', params: { name: result.artist, title: result.album } })
+            router.push({ name: 'album', params: { name: encodeURIComponent(result.artist), title: encodeURIComponent(result.album) } })
         }
         else {
             router.push({ name: 'artist', params: { name: encodeURIComponent(result.artist) } })
@@ -65,6 +64,9 @@ function goToPage(result) {
 </script>
 
 <template>
+    <nav>
+        <a href="/"><img src="../assets/back.png" id="back-button"></a>
+    </nav>
     <header class="header-wrapper">
         <SearchBar></SearchBar>
     </header>
@@ -82,6 +84,17 @@ function goToPage(result) {
     </main>
 </template>
 <style scoped>
+#back-button {
+    border: none;
+    background-color: white;
+    filter: grayscale(100%);
+    margin-left: 4vw;
+}
+
+#back-button:hover {
+    filter: grayscale(0%);
+}
+
 .list-of-results {
     display: flex;
     flex-direction: row;
@@ -109,8 +122,8 @@ function goToPage(result) {
     z-index: 1;
     position: absolute;
     top: 10%;
-    right: 48vw;
-    width: 30VW;
+    right: 30%;
+    width: 40VW;
 
 }
 </style>
