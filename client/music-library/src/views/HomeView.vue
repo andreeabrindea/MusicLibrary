@@ -2,7 +2,11 @@
 import { ref, onMounted } from 'vue';
 import RecentlyAddedArtists from '../components/RecentlyAddedArtists.vue';
 import RecentlyAddedAlbums from '../components/RecentlyAddedAlbums.vue';
+import { useRoute } from 'vue-router'
+import { useRouter } from 'vue-router';
 
+const route = useRoute();
+const router = useRouter();
 var artists = ref([]);
 var albums = ref([]);
 
@@ -31,6 +35,11 @@ async function getAlbums() {
     console.log(error.message);
   }
 }
+
+function goToAddArtistPage() {
+  router.push({ name: 'addArtist' })
+
+}
 onMounted(async () => {
   artists.value = await getArtists();
   albums.value = await getAlbums();
@@ -44,10 +53,32 @@ onMounted(async () => {
       <RecentlyAddedAlbums :albums="albums"></RecentlyAddedAlbums>
     </section>
   </main>
+  <button class="floating-button" @click="goToAddArtistPage">+</button>
 </template>
 <style scoped>
 header {
   margin-top: 10vh;
+}
+
+.floating-button {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background-color: blue;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.floating-button:hover {
+  background-color: darkblue;
 }
 
 .page-wrapper {
