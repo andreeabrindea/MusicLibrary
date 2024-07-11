@@ -6,7 +6,6 @@ import AddAlbum from '@/views/AddAlbum.vue'
 import SearchResults from '@/views/SearchResults.vue'
 import AddArtist from '@/views/AddArtist.vue'
 import EditArtist from '@/views/EditArtist.vue'
-import DeleteArtist from '@/views/DeleteArtist.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),

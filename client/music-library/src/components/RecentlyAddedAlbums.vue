@@ -9,7 +9,7 @@ const router = useRouter();
 const props = defineProps(['albums'])
 
 function goToPage(album) {
-    router.push({ name: 'album', params: { name: encodeURI(album.artist), title: encodeURI(album.album) } })
+    router.push({ name: 'album', params: { _id: encodeURI(album.artistId), title: encodeURI(album.album) } })
 }
 </script>
 

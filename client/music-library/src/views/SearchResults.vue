@@ -1,5 +1,4 @@
 <script setup>
-import SearchBar from '../components/SearchBar.vue';
 import { useRoute } from 'vue-router'
 import { watch, ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
@@ -26,13 +25,13 @@ async function loadResults() {
         results.value = data.flatMap((item) => {
             const results = [];
             if (item.name.toLowerCase().includes(decodeURI(route.params.searched).toLowerCase())) {
-                results.push({ artist: item.name });
+                results.push({ artist: item.name, artistId: item._id });
             }
             if (item.albums.length > 0) {
                 item.albums.forEach(album => {
-                    if (album.title.includes(decodeURI(route.params.searched).toLowerCase())) { results.push({ artist: item.name, album: album.title }); }
+                    if (album.title.includes(decodeURI(route.params.searched).toLowerCase())) { results.push({ artist: item.name, artistId: item._id, album: album.title }); }
                     album.songs.forEach(song => {
-                        results.push({ artist: item.name, album: album.title, song: song.title });
+                        results.push({ artist: item.name, artistId: item._id, album: album.title, song: song.title });
                     });
                 });
             }
@@ -51,10 +50,10 @@ async function getSearchResults(elem) {
 function goToPage(result) {
     try {
         if (result.album) {
-            router.push({ name: 'album', params: { name: encodeURIComponent(result.artist), title: encodeURIComponent(result.album) } })
+            router.push({ name: 'album', params: { _id: encodeURIComponent(result.artistId), title: encodeURIComponent(result.album) } })
         }
         else {
-            router.push({ name: 'artist', params: { name: encodeURIComponent(result.artist) } })
+            router.push({ name: 'artist', params: { _id: encodeURIComponent(result.artistId) } })
         }
     }
     catch (error) {
@@ -64,18 +63,11 @@ function goToPage(result) {
 </script>
 
 <template>
-    <nav>
-        <a href="/"><img src="../assets/back.png" id="back-button"></a>
-    </nav>
-    <header class="header-wrapper">
-        <SearchBar></SearchBar>
-    </header>
     <main class="page-wrapper">
-        <h1 class="centered-term">"{{ decodeURI(route.params.searched) }}"</h1>
+        <h1 class="centered-term" style="margin-top: 10vh;">"{{ decodeURI(route.params.searched) }}"</h1>
         <p class="centered-term">{{ message }}</p>
         <ul>
-            <li v-if="results.length" v-for="result in results" class="list-of-results centered-term"
-                @click="goToPage(result)">
+            <li v-for="result in results" class="list-of-results centered-term" @click="goToPage(result)">
                 <p>{{ result.artist }}</p>
                 <p>{{ result.album }}</p>
                 <p>{{ result.song }}</p>

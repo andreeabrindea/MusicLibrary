@@ -1,6 +1,5 @@
 <script setup>
-import SearchBar from '../components/SearchBar.vue'
-import { watch, ref, onMounted } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router'
 import { useRouter } from 'vue-router';
 
@@ -39,32 +38,26 @@ function goToAlbumPage(album) {
 </script>
 
 <template>
-    <header>
-        <a href="/"><img src="../assets/back.png" id="back-button"></a>
-        <div class="page-wrapper">
-            <SearchBar class="search-bar"></SearchBar>
-        </div>
-    </header>
-    <img id="artist-icon" src="../assets/artist.png">
-    <main class="artist-content">
-        <h1>{{ artist.name }}</h1>
-        <ul>
-            <router-link :to="{ name: 'addAlbum', params: { artist: route.params.name } }">
-                <li>Add new album</li>
-            </router-link>
-            <li v-for="album in artist.albums" @click="goToAlbumPage(album)"> {{ album.title }}</li>
-        </ul>
-    </main>
+    <div class="layout">
+        <img id="artist-icon" src="../assets/artist.png">
+        <main class="artist-content">
+            <h1>{{ artist.name }}</h1>
+            <ul>
+                <router-link :to="{ name: 'addAlbum', params: { artist: route.params.name } }">
+                    <li>Add new album</li>
+                </router-link>
+                <li v-for="album in artist.albums" @click="goToAlbumPage(album)"> {{ album.title }}</li>
+            </ul>
+        </main>
+    </div>
 </template>
+
 <style scoped>
-.not-found-message {
-    position: absolute;
-    top: 10%;
-    left: 0;
-    right: 0;
-    margin-left: auto;
-    margin-right: auto;
-    width: 25vw;
+.layout {
+    display: flex;
+    flex-direction: row;
+    width: 90%;
+    justify-content: space-evenly;
 }
 
 .page {
@@ -73,20 +66,16 @@ function goToAlbumPage(album) {
 
 ul {
     display: flex;
-    flex-direction: row;
-    gap: 8px;
+    gap: 0.5em;
     flex-wrap: wrap;
-    width: 80vw;
 }
 
 li {
     list-style-type: none;
-    width: 18vw;
-    height: 16vh;
+    padding: 3em 2.5em;
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-bottom: 1vh;
     background-color: #74BBB6;
     color: white;
     border-radius: 14px;
@@ -115,20 +104,17 @@ li:hover {
 }
 
 #artist-icon {
-    position: absolute;
-    top: 80px;
-    right: 40vw;
-    z-index: 0;
     height: 40vh;
 }
 
 .artist-content {
-    position: absolute;
-    margin-top: 20vh;
-    width: 100vw;
-    z-index: 2;
-    top: 380px;
     text-align: center;
     font-family: "Josefin Sans", sans-serif;
+}
+
+@media only screen and (max-width: 767px) {
+    .layout {
+        flex-direction: column;
+    }
 }
 </style>

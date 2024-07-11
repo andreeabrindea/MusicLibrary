@@ -1,7 +1,5 @@
 <script>
-import MusicWaves from '../components/MusicWaves.vue';
 export default {
-    components: { MusicWaves },
     data() {
         return {
             artist: {
@@ -54,10 +52,6 @@ export default {
 };
 </script>
 <template>
-    <nav>
-        <a href="/"><img src="../assets/back.png" id="back-button"></a>
-    </nav>
-    <MusicWaves></MusicWaves>
     <div class="add-artist-page-wrapper">
         <h2 class="page-title">Add Artist</h2>
         <form @submit.prevent="createArtist">

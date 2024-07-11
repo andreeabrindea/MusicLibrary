@@ -35,13 +35,13 @@ function manipulateListOfResultSuggestions(data, results, input, maximumNoOfElem
         results.value = data.flatMap((item) => {
             const results = [];
             if (item.name.toLowerCase().includes(input)) {
-                results.push({ artist: item.name });
+                results.push({ artist: item.name, artistId: item.id });
             }
             if (item.albums.length > 0) {
                 item.albums.forEach(album => {
-                    if (album.title.includes(input)) { results.push({ artist: item.name, album: album.title }); }
+                    if (album.title.includes(input)) { results.push({ artist: item.name, artistId: item.id, album: album.title }); }
                     album.songs.forEach(song => {
-                        results.push({ artist: item.name, album: album.title, song: song.title });
+                        results.push({ artist: item.name, artistId: item.id, album: album.title, song: song.title });
                     });
                 });
             }
@@ -104,7 +104,7 @@ function moveCursor(step) {
                 <img id="search-icon" src="./icons/search.png">
             </button>
         </form>
-        <ul class="suggestions-list" id="suggestions-list">
+        <ul class="suggestions-list">
             <li v-for="(suggestion, index) in suggestions" :key="suggestion.id" class="icon suggestions-list-element"
                 @click="selectSuggestion(suggestion)" :class="index === selectedIndex ? 'selected' : ''">
                 <p>{{ suggestion.artist }}</p>
@@ -116,15 +116,21 @@ function moveCursor(step) {
 </template>
 
 <style scoped>
+.icon {
+    padding-left: 28px;
+    background: url("https://static.thenounproject.com/png/101791-200.png") no-repeat left;
+    background-size: 20px;
+    margin-left: 2px;
+}
+
+.icon:hover {
+    cursor: pointer;
+}
+
 .suggestions-list-element {
     display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 4px;
     flex-wrap: nowrap;
-    margin-top: 8px;
-    margin-bottom: 8px;
-    height: 25px;
+    gap: 0.75em;
 }
 
 #search-button,
@@ -165,18 +171,19 @@ function moveCursor(step) {
 }
 
 .suggestions-list {
-    margin: 0;
-    padding: 0;
-    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25em;
+    width: 54%;
+    border-radius: 0 0 20px 20px;
     background-color: #EFF1F3;
+    position: absolute;
+    top: 9em;
     z-index: 99;
-    margin-top: 10px;
 }
 
 li {
     list-style-type: none;
-    height: 8%;
-    z-index: 99;
 }
 
 li:hover {
@@ -190,7 +197,7 @@ li.selected {
 .search-wrapper {
     display: flex;
     flex-direction: column;
-    z-index: 99;
+    align-items: center;
 }
 
 #input-search-bar {
@@ -199,20 +206,10 @@ li.selected {
     margin-bottom: 2px;
     background-color: #EFF1F3;
     border: 0;
+    z-index: 99;
 }
 
 #input-search-bar:focus {
     outline: none;
-}
-
-.icon {
-    padding-left: 28px;
-    background: url("https://static.thenounproject.com/png/101791-200.png") no-repeat left;
-    background-size: 20px;
-    margin-left: 2px;
-}
-
-.icon:hover {
-    cursor: pointer;
 }
 </style>

@@ -1,7 +1,5 @@
 <script setup>
 import { ref, onMounted } from 'vue';
-import SearchBar from '../components/SearchBar.vue';
-import MusicWaves from '../components/MusicWaves.vue';
 import RecentlyAddedArtists from '../components/RecentlyAddedArtists.vue';
 import RecentlyAddedAlbums from '../components/RecentlyAddedAlbums.vue';
 
@@ -40,13 +38,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <header>
-    <MusicWaves></MusicWaves>
-  </header>
   <main>
-    <section class="page-wrapper">
-      <SearchBar class="search-bar"></SearchBar>
-    </section>
     <section class="artists-albums-list">
       <RecentlyAddedArtists :artists="artists"></RecentlyAddedArtists>
       <RecentlyAddedAlbums :albums="albums"></RecentlyAddedAlbums>
@@ -70,9 +62,6 @@ header {
 .artists-albums-list {
   position: absolute;
   flex-wrap: wrap;
-  top: 70%;
   width: 60vw;
-  margin-left: 20vw;
-  margin-right: 4vw;
 }
 </style>
