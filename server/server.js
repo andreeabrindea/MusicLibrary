@@ -10,7 +10,7 @@ async function main() {
 
   router.use((req, res, next) => {
     res.header("Access-Control-Allow-Origin", "*");
-    res.header("Access-Control-Allow-Methods", "GET, PUT, POST");
+    res.header("Access-Control-Allow-Methods", "GET, PUT, POST, DELETE");
     res.header(
       "Access-Control-Allow-Headers",
       "Origin, X-Requested-With, Content-Type, Accept"
@@ -28,6 +28,47 @@ async function main() {
     }
   });
 
+  router.put("/artists/:id", async (req, res) => {
+    const { id } = req.params;
+    const updateData = req.body;
+
+    try {
+      const artist = await Artist.findOneAndUpdate({ _id: id }, { $push: { "albums": updateData } }, {
+        new: true,
+      });
+
+      if (!artist) {
+        return res.status(404).json({ message: "Artist not found" });
+      }
+
+      res.status(200).json(artist);
+    } catch (error) {
+      console.log(error.message);
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  router.delete("/artists/:id/:title", async (req, res) => {
+    const { id, title } = req.params;
+
+    try {
+        const artist = await Artist.findOneAndUpdate(
+            { _id: id },
+            { $pull: { albums: { title: title } } },
+            { new: true }
+        );
+
+        if (!artist) {
+            return res.status(404).json({ message: "Artist not found" });
+        }
+
+        res.status(200).json({ message: "Album deleted successfully", artist });
+    } catch (error) {
+        console.log(error.message);
+        res.status(500).json({ message: error.message });
+    }
+  });
+
   router.get("/artists", async (req, res) => {
     try {
       const artist = await Artist.find({});
@@ -40,11 +81,15 @@ async function main() {
   router.get("/albums", async (req, res) => {
     try {
       const albums = await Artist.find({});
-      let results = []
+      let results = [];
       albums.map((artists) => {
         artists.albums.map((artistAlbum) => {
-          results.push({artist: artists.name, album: artistAlbum.title});
-        })
+          results.push({
+            artist: artists.name,
+            artistId: artists._id,
+            album: artistAlbum.title,
+          });
+        });
       });
 
       res.status(200).json(results);
@@ -53,80 +98,29 @@ async function main() {
     }
   });
 
-  router.get("/artists/:name", async (req, res) => {
+  router.get("/artists/:id", async (req, res) => {
     try {
-      const { name } = req.params;
-      const artist = await Artist.findOne({ name: decodeURIComponent(name) });
+      const { id } = req.params;
+      const artist = await Artist.findOne({ _id: id });
       res.status(200).json(artist);
     } catch (error) {
       res.status(500).json({ message: error.message });
     }
   });
 
-  router.get("/music/songs-by-artist/:name", async (req, res) => {
-    try {
-      const { name } = req.params;
-      const artist = await Artist.findOne({ name: decodeURIComponent(name) });
-
-      if (!artist) {
-        return res.status(400).json({ message: "Artist not found" });
-      }
-
-      const songs = artist.albums.flatMap((album) => album.songs);
-      res.status(200).json(songs);
-    } catch (error) {
-      res.status(500).json({ message: error.message });
-    }
-  });
-
-  router.get("/music/albums-by-artist/:name", async (req, res) => {
-    try {
-      const { name } = req.params;
-      const artist = await Artist.findOne({
-        name: new RegExp(`^${decodeURIComponent(name)}$`, "i"),
-      });
-
-      if (!artist) {
-        return res.status(400).json({ message: "Artist not found" });
-      }
-
-      res.status(200).json(artist.albums);
-    } catch (error) {
-      res.status(500).json({ message: error.message });
-    }
-  });
-
-  router.get("/artist/by-song/:title", async (req, res) => {
-    try {
-      const { title } = req.params;
-
-      const artist = await Artist.findOne({
-        "albums.songs.title": decodeURIComponent(title),
-      });
-      if (!artist) {
-        return res.status(404).json({ message: "Song not found" });
-      }
-
-      res.status(200).json({ artist });
-    } catch (error) {
-      res.status(500).json({ message: error.message });
-    }
-  });
-
-  router.get("/songs/:artist/:album", async (req, res) => {
+  router.get("/songs/:id/:album", async (req, res) => {
     try {
       const artist = await Artist.findOne({
-        name: decodeURIComponent(req.params.artist),
+        _id: decodeURIComponent(req.params.id),
         "albums.title": decodeURIComponent(req.params.album),
       });
       if (!artist) {
         return res.status(404).json({ message: "Album not found" });
       }
-
       var album = artist.albums.filter(
         (album) => album.title == req.params.album
       )[0];
-      res.status(200).json({ album });
+      res.status(200).json(album);
     } catch (error) {
       res.status(500).json({ message: error.message });
     }
@@ -135,42 +129,48 @@ async function main() {
   router.get("/suggest/:searched", async (req, res, next) => {
     try {
       const { searched } = req.params;
-    const decodedSearch = decodeURIComponent(searched);
-    const tokens = tokenizeSearchString(decodedSearch);
+      const decodedSearch = decodeURIComponent(searched);
+      const tokens = tokenizeSearchString(decodedSearch);
 
-    const regexTokens = tokens.map(token => new RegExp(token, 'i'));
+      const regexTokens = tokens.map((token) => new RegExp(token, "i"));
 
-    const query = {
-      $or: [
-        { name: { $in: regexTokens } },
-        { 'albums.title': { $in: regexTokens } },
-        { 'albums.songs.title': { $in: regexTokens } },
-      ],
-    };
-
-    const artists = await Artist.find(query);
-    const results = []
-    const response = artists.map(artist => {
-      const filteredAlbums = artist.albums
-        .filter(album =>
-          regexTokens.some(regex => regex.test(album.title)) ||
-          album.songs.some(song => regexTokens.some(regex => regex.test(song.title)))
-        )
-        .map(album => ({
-          title: album.title,
-          songs: album.songs
-            .filter(song => regexTokens.some(regex => regex.test(song.title)))
-            .map(song => ({
-              title: song.title,
-            })),
-        }));
-      return {
-        name: artist.name,
-        albums: filteredAlbums,
+      const query = {
+        $or: [
+          { name: { $in: regexTokens } },
+          { "albums.title": { $in: regexTokens } },
+          { "albums.songs.title": { $in: regexTokens } },
+        ],
       };
-    });
 
-    res.status(200).json(response);
+      const artists = await Artist.find(query);
+      const results = [];
+      const response = artists.map((artist) => {
+        const filteredAlbums = artist.albums
+          .filter(
+            (album) =>
+              regexTokens.some((regex) => regex.test(album.title)) ||
+              album.songs.some((song) =>
+                regexTokens.some((regex) => regex.test(song.title))
+              )
+          )
+          .map((album) => ({
+            title: album.title,
+            songs: album.songs
+              .filter((song) =>
+                regexTokens.some((regex) => regex.test(song.title))
+              )
+              .map((song) => ({
+                title: song.title,
+              })),
+          }));
+        return {
+          _id: artist._id,
+          name: artist.name,
+          albums: filteredAlbums,
+        };
+      });
+
+      res.status(200).json(response);
     } catch (error) {
       res.status(500).json({ message: error.message });
     }
@@ -188,4 +188,5 @@ async function main() {
   );
 }
 
-const tokenizeSearchString = (searchString) => searchString.split(/\s+/).filter(token => token.length > 0);
+const tokenizeSearchString = (searchString) =>
+  searchString.split(/\s+/).filter((token) => token.length > 0);
